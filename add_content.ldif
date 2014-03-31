@@ -1,0 +1,74 @@
+dn: ou=users,dc=ec2,dc=internal
+objectClass: organizationalUnit
+ou: users
+
+dn: ou=groups,dc=ec2,dc=internal
+objectClass: organizationalUnit
+ou: groups
+
+dn: uid=user1,ou=users,dc=ec2,dc=internal
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: user1
+sn: user1
+givenName: user1
+cn: user1
+displayName: USER1
+userPassword: user1
+
+dn: uid=user2,ou=users,dc=ec2,dc=internal
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: user2
+sn: user2
+givenName: user2
+cn: user2
+displayName: USER2
+userPassword: user2
+
+dn: uid=user3,ou=users,dc=ec2,dc=internal
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: user3
+sn: user3
+givenName: user3
+cn: user3
+displayName: USER3
+userPassword: user3
+
+dn: uid=user4,ou=users,dc=ec2,dc=internal
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: user4
+sn: user4
+givenName: user4
+cn: user4
+displayName: USER4
+userPassword: user4
+
+dn: uid=user5,ou=users,dc=ec2,dc=internal
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: user5
+sn: user5
+givenName: user5
+cn: user5
+displayName: USER5
+userPassword: user5
+
+dn: cn=API,ou=groups,dc=ec2,dc=internal
+objectclass: top
+objectclass: groupOfNames
+cn: API
+ou: API
+member: uid=user1,ou=users,dc=ec2,dc=internal

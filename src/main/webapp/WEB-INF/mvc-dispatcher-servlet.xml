@@ -1,0 +1,103 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:security="http://www.springframework.org/schema/security"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/mvc
+        http://www.springframework.org/schema/mvc/spring-mvc.xsd
+        http://www.springframework.org/schema/security
+        http://www.springframework.org/schema/security/spring-security-3.2.xsd">
+
+    <security:http pattern="/favicon.ico" security="none" />
+        <!--<security:remember-me/>-->
+    <security:http>
+        <security:intercept-url pattern="/reset" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
+        <security:intercept-url pattern="/reset/**" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
+        <security:intercept-url pattern="/login" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
+
+        <security:intercept-url pattern="/**" access="ROLE_API"/>
+        <security:intercept-url pattern="/logout" access="ROLE_API"/>
+        <security:csrf />
+        <security:form-login login-page="/login" default-target-url="/"
+                authentication-failure-url="/login?error=true" />
+        <security:logout logout-url="/logout" delete-cookies="JSESSIONID" invalidate-session="true"/>
+    </security:http>
+
+    <security:authentication-manager>
+        <security:authentication-provider ref="ldapAuthProvider"/>
+    </security:authentication-manager>
+    <bean id="requestDataValueProcessor" class="org.springframework.security.web.servlet.support.csrf.CsrfRequestDataValueProcessor"/>
+
+    <bean id="csrfFilter" class="org.springframework.security.web.csrf.CsrfFilter">
+        <constructor-arg>
+            <bean class="org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository">
+                <property name="headerName" value="X-CSRF-TOKEN" />
+            </bean>
+        </constructor-arg>
+    </bean>
+    <bean id="contextSource"
+          class="org.springframework.security.ldap.DefaultSpringSecurityContextSource">
+        <constructor-arg value="ldap://host:389/dc=ec2,dc=internal"/>
+        <property name="userDn" value="cn=admin,dc=ec2,dc=internal"/>
+        <property name="password" value="******"/>
+    </bean>
+
+    <bean id="ldapAuthProvider"
+          class="org.springframework.security.ldap.authentication.LdapAuthenticationProvider">
+        <property name="userDetailsContextMapper" >
+            <bean class="org.springframework.security.ldap.userdetails.InetOrgPersonContextMapper"/>
+        </property>
+        <constructor-arg>
+            <bean class="org.springframework.security.ldap.authentication.BindAuthenticator">
+                <constructor-arg ref="contextSource"/>
+                <property name="userSearch" ref="userSearch"/>
+            </bean>
+        </constructor-arg>
+        <constructor-arg>
+            <bean class="org.springframework.security.ldap.userdetails.DefaultLdapAuthoritiesPopulator">
+                <constructor-arg ref="contextSource"/>
+                <constructor-arg value="ou=groups"/>
+                <property name="groupRoleAttribute" value="ou"/>
+                <property name="searchSubtree" value="true"/>
+                <property name="groupSearchFilter" value="(&amp;(member=uid={1},ou=users,dc=ec2,dc=internal))"/>
+            </bean>
+        </constructor-arg>
+
+    </bean>
+    <bean id="userSearch"
+          class="org.springframework.security.ldap.search.FilterBasedLdapUserSearch">
+        <constructor-arg index="0" value=""/>
+        <constructor-arg index="1" value="(uid={0})"/>
+        <constructor-arg index="2" ref="contextSource" />
+    </bean>
+    <bean id="ldapTemplate" class="org.springframework.ldap.core.LdapTemplate">
+     <constructor-arg name="contextSource" ref="contextSource"/>
+    </bean>
+    <bean id="mailSender" class="com.swindler.site.mailer.AsyncMailSender">
+        <property name="host" value="maildomain.com"/>
+        <property name="port" value="25"/>
+        <property name="username" value="sender@mail.com"/>
+        <property name="password" value="*******"/>
+        <property name="javaMailProperties">
+            <props>
+                <prop key="mail.smtp.auth">true</prop>
+                <prop key="mail.smtp.starttls.enable">false</prop>
+            </props>
+        </property>
+    </bean>
+
+    <context:component-scan base-package="com.swindler"/>
+    <mvc:annotation-driven/>
+    <context:component-scan base-package="com.swindler.site"/>
+
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/WEB-INF/pages/"/>
+        <property name="suffix" value=".jsp"/>
+    </bean>
+
+</beans>
